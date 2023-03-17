@@ -19,7 +19,3 @@ class GeneratorFakeData:
                 )
             )
         return data
-
-
-asd = GeneratorFakeData().generate(4)
-print(asd)

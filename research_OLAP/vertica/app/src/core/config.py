@@ -8,4 +8,8 @@ class Settings(BaseSettings):
     vertica_password: str = Field(default='', env='VERTICA_PASSWORD')
     vertica_database: str = Field(default='docker', env='VERTICA_DATABASE')
     vertica_autocommit: bool = Field(default=True, env='VERTICA_AUTOCOMMIT')
-    quantity_data: int = 10000000
+    batch_size: int = 1000
+    batch_iterration = 10000
+
+
+settings = Settings()

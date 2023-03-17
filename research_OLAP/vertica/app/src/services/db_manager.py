@@ -14,7 +14,11 @@ class BaseDbManager(ABC):
         pass
 
     @abstractmethod
-    def select_data(self, limit: int):
+    def select_data(self):
+        pass
+
+    @abstractmethod
+    def count_data(self):
         pass
 
 
@@ -23,13 +27,14 @@ class DbManagerVertica(BaseDbManager):
         self.cursor: Cursor = cursor
 
     def init_table(self):
-        query = '''CREATE TABLE views (
+        query = '''CREATE TABLE IF NOT EXISTS views (
                         id IDENTITY,
                         user_id VARCHAR(256) NOT NULL,
                         movie_id VARCHAR(256) NOT NULL,
                         viewed_frame INTEGER NOT NULL
         );
     '''
+
         self.cursor.execute(query)
 
     def insert_many_data(self, data: list[tuple]):
@@ -40,10 +45,17 @@ class DbManagerVertica(BaseDbManager):
                     VALUES (?, ?, ?);'''
         self.cursor.executemany(query, data, use_prepared_statements=True)
 
-    def select_data(self, limit: int):
-        query = f'SELECT * from views limit {limit}'
+    def select_data(self):
+        query = f'SELECT * from views'
+        result = self._execute(query)
+        return result
+
+    def count_data(self):
+        query = f'SELECT COUNT(*) from views'
+        result = self._execute(query)
+        return result
+
+    def _execute(self, query: str):
         self.cursor.execute(query)
-
-
-
-
+        result = self.cursor.fetchall()
+        return result
