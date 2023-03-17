@@ -1,0 +1,73 @@
+@startuml
+
+skinparam componentStyle uml2
+skinparam backgroundColor MOTIVATION
+
+title [ARCH]: AS IS
+
+actor User
+actor Admin
+
+
+frame GeneralBalancer {
+    component Nginx as nginx_general_balancer
+}
+
+frame AdminPanel {
+    component Nginx as nginx_admin_panel
+    component Application_server as app_serv_admin_panel
+    component Django as django_admin_panel
+}
+
+
+database PostgreSQL
+
+frame ETLService {
+    component ETL as etl_service
+    database Redis as redis_etl_service
+}
+
+database Elasticsearch as elasticsearch_data_service
+
+frame ApiService {
+    component Nginx as nginx_api_service
+    component Application_server as app_serv_api_service
+    component FastAPI as fastapi_api_service
+    database Redis as redis_api_service
+
+}
+
+frame AuthService {
+    component Nginx as nginx_auth_service
+    component Application_server as app_serv_auth_service
+    component Flask as flask_auth_service
+    database PostgreSQL as posgresql_auth_service
+    database Redis as redis_auth_service
+}
+Admin --r-> nginx_general_balancer
+User -l-> nginx_general_balancer
+
+nginx_general_balancer ---> nginx_admin_panel
+nginx_admin_panel --> app_serv_admin_panel
+app_serv_admin_panel <-- django_admin_panel
+django_admin_panel <---- PostgreSQL
+
+
+
+PostgreSQL <-r-> etl_service
+etl_service <---> elasticsearch_data_service
+etl_service <-.-> redis_etl_service
+
+nginx_general_balancer ----> nginx_api_service
+nginx_api_service --> app_serv_api_service
+fastapi_api_service --> app_serv_api_service
+fastapi_api_service <-- redis_api_service : cash data
+fastapi_api_service <-- elasticsearch_data_service
+
+nginx_general_balancer ----> nginx_auth_service
+nginx_auth_service --> app_serv_auth_service
+flask_auth_service --> app_serv_auth_service
+posgresql_auth_service --> flask_auth_service : storage users
+redis_auth_service --> flask_auth_service : storage refresh, invalid tokens
+AuthService <---- ApiService : check permission
+@enduml
