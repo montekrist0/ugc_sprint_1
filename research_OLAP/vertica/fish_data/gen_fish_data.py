@@ -1,3 +1,4 @@
+import csv
 from faker import Faker
 
 
@@ -21,4 +22,11 @@ class GeneratorFakeData:
         return data
 
 
-generator_data = GeneratorFakeData()
+if __name__ == "__main__":
+    gen_fish_data = GeneratorFakeData()
+
+    data = gen_fish_data.generate(10000000)
+
+    with open('./fish_data.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)

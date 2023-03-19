@@ -3,5 +3,22 @@ version: '3.5'
 services:
   vertica:
     image: jbfavre/vertica:latest
-    ports:
-      - "5433:5433"
+    volumes:
+      - ./fish_data/fish_data.csv:/fish_data.csv
+    expose:
+      - "5433"
+    healthcheck:
+      test: [ "CMD-SHELL", "echo 'SELECT 1' | vsql -U dbadmin -w secret -d mydb -t -c" ]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  app:
+    build: ./app
+    env_file:
+      - ./app/src/.env.test_vertica
+    volumes:
+      - ./result_vertica.txt:/app/result_vertica.txt
+    depends_on:
+      - vertica
+    entrypoint: ["sh","./docker-entrypoint.sh"]

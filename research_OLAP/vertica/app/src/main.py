@@ -1,74 +1,73 @@
-import time
 import multiprocessing
+import time
+import logging
+
 import vertica_python
 
+from services.benchmark import BenchmarkVertica
 from services.db_manager import DbManagerVertica
-from services.generate_data import GeneratorFakeData
 from core.config import settings
 
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+
 connection_info = {
-    'host': settings.vertica_host,
-    'port': settings.vertica_port,
-    'user': settings.vertica_user,
-    'password': settings.vertica_password,
-    'database': settings.vertica_database,
-    'autocommit': settings.vertica_autocommit,
+    "host": settings.vertica_host,
+    "port": settings.vertica_port,
+    "user": settings.vertica_user,
+    "password": settings.vertica_password,
+    "database": settings.vertica_database,
+    "autocommit": settings.vertica_autocommit,
 }
 
 
-def init_table():
+def create_result_txt():
+    open(settings.path_result_txt, "w").close()
+
+
+def write_result_txt(lines: list[str]):
+    with open(settings.path_result_txt, mode="a") as file:
+        file.writelines("%s\n" % line for line in lines)
+
+
+def init_process():
     with vertica_python.connect(**connection_info) as connection:
         cursor = connection.cursor()
         manager_db = DbManagerVertica(cursor)
         manager_db.init_table()
+        time.sleep(2)
+        manager_db.start_data_init()
 
 
-
-
-
-def load_data(shared_var):
-
+def queries_in_db():
     with vertica_python.connect(**connection_info) as connection:
         cursor = connection.cursor()
         manager_db = DbManagerVertica(cursor)
-        for _ in range(10000):
-            data = GeneratorFakeData().generate(1000)
-            manager_db.insert_many_data(data)
-            shared_var.value += 1000
+        benchmark = BenchmarkVertica(manager_db)
+        results = benchmark.all_requests()
+        write_result_txt(results)
 
-def get_data(shared_var):
 
+def load_db():
     with vertica_python.connect(**connection_info) as connection:
         cursor = connection.cursor()
         manager_db = DbManagerVertica(cursor)
-        cheking = (1000, 10000, 100000,1000000, 10000000)
+        benchmark = BenchmarkVertica(manager_db)
         while True:
-            if shared_var.value in cheking:
-                print(shared_var, 'pussy')
-                res = manager_db.count_data()
-                print(res)
-            print(shared_var.value)
-
-# def test_vertica():
-#
-#
-#     with vertica_python.connect(**connection_info) as connection:
-#         cursor = connection.cursor()
-#         data = GeneratorFakeData().generate(1000000)
-#         print('generate is done')
-#         db_manger_vertica = DbManagerVertica(cursor=cursor)
-#         db_manger_vertica.insert_many_data(data)
+            benchmark.write_1000_data_in_db()
 
 
 if __name__ == "__main__":
-    init_table()
-    time.sleep(10)
-    shared_var = multiprocessing.Value('i', 0)
-    p1 = multiprocessing.Process(target=load_data, args=(shared_var,))
-    p2 = multiprocessing.Process(target=get_data,args=(shared_var,))
+    create_result_txt()
+    init_process()
+    write_result_txt(["Тестирование без нагрузки"])
+    queries_in_db()
+    write_result_txt(["Тестирование с нагрузкой"])
+    p1 = multiprocessing.Process(target=load_db)
+    p2 = multiprocessing.Process(target=queries_in_db)
 
     p1.start()
     p2.start()
 
-    p1.join()
     p2.join()
+    p1.terminate()
+    p1.join()
