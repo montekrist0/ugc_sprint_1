@@ -6,9 +6,6 @@ class GeneratorFakeData:
     def __init__(self):
         self.faker = Faker()
 
-    def __del__(self):
-        del self.faker
-
     def generate(self, quantity: int) -> list[tuple]:
         data = []
         for _ in range(quantity):
@@ -27,6 +24,6 @@ if __name__ == "__main__":
 
     data = gen_fish_data.generate(10000000)
 
-    with open('./fish_data.csv', mode='w', newline='') as file:
+    with open('fish_data.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(data)

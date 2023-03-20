@@ -5,7 +5,7 @@ import logging
 import vertica_python
 
 from services.benchmark import BenchmarkVertica
-from services.db_manager import DbManagerVertica
+from db.db_manager import DbManagerVertica
 from core.config import settings
 
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -30,12 +30,25 @@ def write_result_txt(lines: list[str]):
 
 
 def init_process():
+    check_connection()
     with vertica_python.connect(**connection_info) as connection:
         cursor = connection.cursor()
         manager_db = DbManagerVertica(cursor)
-        manager_db.init_table()
+        manager_db.create_table()
         time.sleep(2)
-        manager_db.start_data_init()
+        manager_db.create_start_data()
+
+
+def check_connection():
+    while True:
+        try:
+            connection = vertica_python.connect(**connection_info)
+            break
+        except Exception as e:
+            print(f"Ошибка соединения с Vertica: {e}")
+        finally:
+            connection.close()
+    print("Соединение с Vertica установлено")
 
 
 def queries_in_db():
@@ -53,7 +66,7 @@ def load_db():
         manager_db = DbManagerVertica(cursor)
         benchmark = BenchmarkVertica(manager_db)
         while True:
-            benchmark.write_1000_data_in_db()
+            benchmark.insert_1000_data()
 
 
 if __name__ == "__main__":

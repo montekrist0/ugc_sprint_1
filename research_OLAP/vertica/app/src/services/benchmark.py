@@ -1,7 +1,7 @@
-import time
-
-from services.db_manager import DbManagerVertica
+from db.db_manager import DbManagerVertica
 from services.generate_data import generator_data
+from services.tools import timer
+from db.queries import Queries
 
 
 class BenchmarkVertica:
@@ -38,34 +38,26 @@ class BenchmarkVertica:
         results.append(result_count)
         return results
 
+    @timer
     def avg_data(self):
-        start_time = time.monotonic()
-        self.db_manager.avg_data()
-        end_time = time.monotonic() - start_time
-        return end_time
+        self.db_manager.get_data(Queries.avg_data.value)
 
+    @timer
     def count_data(self):
-        start_time = time.monotonic()
-        self.db_manager.count_data()
-        end_time = time.monotonic() - start_time
-        return end_time
+        self.db_manager.get_data(Queries.count_data.value)
 
     def load_start_data(self):
-        self.db_manager.start_data_init()
+        self.db_manager.create_start_data()
 
     def insert_1000_data(self):
-        time_write = self.write_1000_data_in_db()
-        return time_write
-
-    def write_1000_data_in_db(self):
         data = self.generator_data.generate(1000)
-        start_time = time.monotonic()
-        self.db_manager.insert_many_data(data)
-        end_time = time.monotonic() - start_time
-        return end_time
+        time_result = self.write_1000_data_in_db(data)
+        return time_result
 
+    @timer
+    def write_1000_data_in_db(self, data):
+        self.db_manager.write_data(Queries.insert_many.value, data)
+
+    @timer
     def select_all_data(self):
-        start_time = time.monotonic()
-        self.db_manager.select_all_data()
-        end_time = time.monotonic() - start_time
-        return end_time
+        self.db_manager.get_data(Queries.get_all.value)

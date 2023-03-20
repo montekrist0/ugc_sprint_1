@@ -4,7 +4,7 @@ services:
   vertica:
     image: jbfavre/vertica:latest
     volumes:
-      - ./fish_data/fish_data.csv:/fish_data.csv
+      - ./data/fish_data.csv:/fish_data.csv
     expose:
       - "5433"
     healthcheck:
