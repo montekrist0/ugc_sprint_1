@@ -1,7 +1,6 @@
 import clickhouse_connect
 from flask import Flask, jsonify
 
-# from src.services.data_generator import GeneratorFakeData
 from research_OLAP.clickhouse.data_generator import GeneratorFakeData
 
 client = clickhouse_connect.get_client(host="localhost", username="default")

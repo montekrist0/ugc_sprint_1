@@ -2,7 +2,7 @@ import time
 
 import clickhouse_connect
 
-from research_OLAP.clickhouse.app.src.services.data_generator import GeneratorFakeData
+from research_OLAP.clickhouse.data_generator import GeneratorFakeData
 
 SLEEP_TIME_BETWEEN_INSERT = 0.05
 
