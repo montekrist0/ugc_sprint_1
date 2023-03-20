@@ -1,7 +1,8 @@
 import clickhouse_connect
 from flask import Flask, jsonify
 
-from research_OLAP.vertica.app.src.services.generate_data import GeneratorFakeData
+# from src.services.data_generator import GeneratorFakeData
+from research_OLAP.clickhouse.data_generator import GeneratorFakeData
 
 client = clickhouse_connect.get_client(host="localhost", username="default")
 
@@ -35,7 +36,7 @@ def clh_select_all_limit_1000():
 
 
 @app.route("/clickhouse/select-all")
-def clh_select_all_limit_1000():
+def clh_select_all():
     client.query("SELECT * FROM test.test t")
     return jsonify("ok")
 

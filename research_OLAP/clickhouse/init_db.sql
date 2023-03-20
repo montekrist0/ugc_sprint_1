@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS test;
 
-CREATE TABLE test.test (
+CREATE TABLE IF NOT EXISTS test.test (
     id String,
     user_id String,
     movie_id String,
