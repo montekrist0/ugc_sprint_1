@@ -37,7 +37,8 @@ async def get_kafka_broker():
     if not kafka_broker:
         loop = asyncio.get_event_loop()
 
-        kafka_producer = AIOKafkaProducer(loop=loop, bootstrap_servers=kafka_config.bootstrap_servers)
+        kafka_producer = AIOKafkaProducer(loop=loop,
+                                          bootstrap_servers=f'{kafka_config.KAFKA_HOST}:{kafka_config.KAFKA_PORT}')
         await kafka_producer.start()
         kafka_broker = KafkaProducerEngine(producer=kafka_producer)
 
