@@ -15,7 +15,7 @@ class BaseConfig(BaseSettings):
 
 
 class KafkaConfig(BaseConfig):
-    """Represents the configuration for the Kafka client."""
+    """Конфигурация кафки"""
 
     KAFKA_HOST: str = Field(env='KAFKA_HOST')
     KAFKA_PORT: int = Field(env='KAFKA_PORT')

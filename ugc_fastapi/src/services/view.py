@@ -11,6 +11,9 @@ class ViewService(BaseService):
 
     topic_name = "view"
 
+    async def send(self, *args):
+        await self.producer.send(self.topic_name, *args)
+
 
 @lru_cache()
 def get_view_service(producer: KafkaProducerEngine = Depends(get_kafka_broker),) -> ViewService:

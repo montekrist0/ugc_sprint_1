@@ -2,13 +2,11 @@ import uvicorn
 from api.v1 import view_progress
 
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 
 app = FastAPI(
     title='API для взаимодействия с брокером сообщений',
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
-    default_response_class=ORJSONResponse,
     description='Сообщения о времени остановки просмотра фильма',
     version='1.0.0'
 )

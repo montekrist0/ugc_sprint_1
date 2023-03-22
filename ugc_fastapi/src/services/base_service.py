@@ -16,5 +16,6 @@ class BaseService(ABC):
         """Имя топика"""
         pass
 
+    @abstractmethod
     async def send(self, *args):
-        await self.producer.send(self.topic_name, *args)
+        pass
