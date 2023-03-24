@@ -5,3 +5,5 @@ up_click_house:
 down:
 	docker compose -f kafka.yml down
 	docker compose -f clickhouse.yml down
+del_volumes:
+	docker volume prune

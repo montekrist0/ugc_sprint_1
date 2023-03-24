@@ -31,7 +31,7 @@ for _ in range(100):
     b = f'{data["user_id"]}+{data["film_id"]}'
     c = pickle.dumps(b)
     producer.send(
-        'films-timestamps',
+        'view',
         value=data,
         key=c,
     )

@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS shard;
 CREATE DATABASE IF NOT EXISTS replica;
 
-CREATE TABLE IF NOT EXISTS shard.kafka_film_timestamp (
+CREATE TABLE IF NOT EXISTS shard.kafka_view (
       user_id String,
       film_id String,
       viewed_frame Int16,
@@ -19,26 +19,26 @@ CREATE TABLE IF NOT EXISTS shard.kafka_film_timestamp (
                kafka_handle_error_mode = 'stream';
 
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS consumer TO shard.film_timestamp
-      AS SELECT * FROM  shard.kafka_film_timestamp;
+CREATE MATERIALIZED VIEW IF NOT EXISTS consumer TO shard.view
+      AS SELECT * FROM  shard.kafka_view;
 
-CREATE TABLE IF NOT EXISTS shard.film_timestamp (
+CREATE TABLE IF NOT EXISTS shard.view (
       user_id String,
       film_id String,
       viewed_frame Int16,
       event_time DateTime('Europe/Moscow'))
-      Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/film_timestamp', 'replica_1') PARTITION BY toYYYYMMDD(event_time) ORDER BY user_id;
+      Engine=ReplicatedMergeTree('/clickhouse/tables/shard2/view', 'replica_1') PARTITION BY toYYYYMMDD(event_time) ORDER BY user_id;
 
-CREATE TABLE IF NOT EXISTS replica.film_timestamp (
+CREATE TABLE IF NOT EXISTS replica.view (
       user_id String,
       film_id String,
       viewed_frame Int16,
       event_time DateTime('Europe/Moscow'))
-      Engine=ReplicatedMergeTree('/clickhouse/tables/shard1/film_timestamp', 'replica_2') PARTITION BY toYYYYMMDD(event_time) ORDER BY user_id;
+      Engine=ReplicatedMergeTree('/clickhouse/tables/shard1/view', 'replica_2') PARTITION BY toYYYYMMDD(event_time) ORDER BY user_id;
 
-CREATE TABLE IF NOT EXISTS default.film_timestamp (
+CREATE TABLE IF NOT EXISTS default.view (
       user_id String,
       film_id String,
       viewed_frame Int16,
       event_time DateTime('Europe/Moscow'))
-      ENGINE = Distributed('company_cluster', '', film_timestamp, rand());
+      ENGINE = Distributed('company_cluster', '', view, rand());

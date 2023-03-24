@@ -10,14 +10,13 @@ services:
   #      - "8000:8000"
 
   kafka-zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.0
+    image: bitnami/zookeeper:3.7.1
     hostname: kafka-zookeeper
     container_name: kafka-zookeeper
-    ports:
-      - "2181:2181"
+    expose:
+      - 2181
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      - ALLOW_ANONYMOUS_LOGIN=yes
     healthcheck:
       test: nc -z localhost 2181 || exit 1
       interval: 15s
@@ -26,31 +25,78 @@ services:
       start_period: 10s
 
   kafka:
-    image: confluentinc/cp-server:7.3.0
+    build: ./kafka
     hostname: kafka
     container_name: kafka
     expose:
       - 9092
+    ports:
+      - "9092:9092"
+    env_file:
+      - .env
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'kafka-zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: localhost
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:29092
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      - KAFKA_BROKER_ID=1
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=kafka-zookeeper:2181
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:29092,EXTERNAL://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:29092,EXTERNAL://localhost:9092
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+      - KAFKA_ADVERTISED_HOST_NAME=kafka
     depends_on:
       kafka-zookeeper:
         condition: service_healthy
 
-
-  clickhouse-zookeeper:
+  click-zookeeper:
     image: zookeeper:3.5
-    container_name: clickhouse-zookeeper
-    hostname: clickhouse-zookeeper
+    container_name: click-zookeeper
+    hostname: click-zookeeper
+
+  clickhouse-node1:
+    image: yandex/clickhouse-server:latest
+    container_name: clickhouse-node1
+    hostname: clickhouse-node1
+    env_file:
+      - .env
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./clickhouse/data/node1:/etc/clickhouse-server
+      - ./clickhouse/init_db/init_shard1.sql:/docker-entrypoint-initdb.d/init.sql
+    depends_on:
+      - click-zookeeper
+
+  clickhouse-node2:
+    image: yandex/clickhouse-server:latest
+    container_name: clickhouse-node2
+    hostname: clickhouse-node2
+    volumes:
+      - ./clickhouse/data/node2:/etc/clickhouse-server
+    depends_on:
+      - click-zookeeper
+
+  clickhouse-node3:
+    image: yandex/clickhouse-server:latest
+    container_name: clickhouse-node3
+    hostname: clickhouse-node3
+    env_file:
+      - .env
+    ports:
+      - "8124:8123"
+      - "9001:9000"
+    volumes:
+      - ./clickhouse/data/node3:/etc/clickhouse-server
+      - ./clickhouse/init_db/init_shard2.sql:/docker-entrypoint-initdb.d/init.sql
+    depends_on:
+      - click-zookeeper
+
+
+  clickhouse-node4:
+    image: yandex/clickhouse-server:latest
+    container_name: clickhouse-node4
+    hostname: clickhouse-node4
+    volumes:
+      - ./clickhouse/data/node4:/etc/clickhouse-server
+    depends_on:
+      - click-zookeeper
