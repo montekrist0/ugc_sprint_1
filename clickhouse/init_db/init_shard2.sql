@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS shard.kafka_view (
                kafka_group_name = 'viewers-group',
                kafka_format = 'JSONEachRow',
                kafka_commit_every_batch = 1,
-               kafka_num_consumers = 3,
+               kafka_num_consumers = 4,
                kafka_max_block_size = 1048576,
                kafka_poll_max_batch_size = 1048576,
                kafka_thread_per_consumer = 1,
