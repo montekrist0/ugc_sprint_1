@@ -56,10 +56,6 @@ frame UGC {
          database ClickHouse as ch_olap
    }
 
-   package ETLServiceUGC {
-         component ETL as etl_service_ugc
-         database Redis as redis_etl_service_ugc
-   }
 }
 
 
@@ -96,7 +92,5 @@ nginx_general_balancer --> nginx_ugc
 nginx_ugc --> app_serv_oltp
 fastapi_api_oltp --> app_serv_oltp
 kafka_auth_service_oltp --> fastapi_api_oltp
-etl_service_ugc <-.-> redis_etl_service_ugc
-etl_service_ugc <.> kafka_auth_service_oltp
-etl_service_ugc <.> ch_olap
+ch_olap --> kafka_auth_service_oltp
 @enduml
