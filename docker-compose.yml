@@ -119,4 +119,3 @@ services:
       - ./clickhouse/data/node4:/etc/clickhouse-server
     depends_on:
       - click-zookeeper
-
