@@ -25,7 +25,7 @@ services:
       start_period: 10s
 
   kafka:
-    build: ./kafka
+    image: bitnami/kafka:3.3.2
     hostname: kafka
     container_name: kafka
     expose:
@@ -34,6 +34,8 @@ services:
       - "9092:9092"
     env_file:
       - .env
+    volumes:
+      - ./kafka/data:/bitnami
     environment:
       - KAFKA_BROKER_ID=1
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -43,9 +45,26 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:29092,EXTERNAL://localhost:9092
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
       - KAFKA_ADVERTISED_HOST_NAME=kafka
+      - KAFKA_CREATE_TOPICS="view:1:1"
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
     depends_on:
       kafka-zookeeper:
         condition: service_healthy
+
+  init-kafka:
+    image: bitnami/kafka:3.3.2
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics.sh --bootstrap-server kafka:29092 --list
+      echo -e 'Creating kafka topics'
+      kafka-topics.sh --bootstrap-server kafka:29092 --create --if-not-exists --topic view --replication-factor 1 --partitions 2
+      echo -e 'Successfully created the following topics:'
+      kafka-topics.sh --bootstrap-server kafka:29092 --list
+      "
+    depends_on:
+      - kafka
 
   click-zookeeper:
     image: zookeeper:3.5
