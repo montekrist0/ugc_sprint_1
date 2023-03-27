@@ -1,0 +1,110 @@
+{
+	"info": {
+		"_postman_id": "4b24e3d5-3acb-425a-92f7-258bea846b0a",
+		"name": "sprint8",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17671541"
+	},
+	"item": [
+		{
+			"name": "insert",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/clickhouse/insert",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"clickhouse",
+						"insert"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get avg movies watch time",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/clickhouse/select-avg",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"clickhouse",
+						"select-avg"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all records",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/clickhouse/select-all",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"clickhouse",
+						"select-all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get 1k rows",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/clickhouse/select-1000",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"clickhouse",
+						"select-1000"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get count of records",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/clickhouse/select-count",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"clickhouse",
+						"select-count"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
