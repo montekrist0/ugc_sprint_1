@@ -5,6 +5,12 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/fastapi
 
+RUN groupadd -r app &&  \
+    useradd -d $HOME -r -g app app && \
+    chown app:app -R $HOME
+
+USER app
+
 WORKDIR $APP_HOME
 
 COPY ./requirements.txt .
@@ -15,14 +21,8 @@ RUN pip install --upgrade pip &&  \
 
 COPY src/ .
 
-RUN groupadd -r app &&  \
-    useradd -d $HOME -r -g app app && \
-    chown app:app -R $HOME
-
 RUN chmod +x  $APP_HOME/entrypoint.sh
 
 EXPOSE 8001
-
-USER app
 
 ENTRYPOINT ["/home/app/fastapi/entrypoint.sh"]
