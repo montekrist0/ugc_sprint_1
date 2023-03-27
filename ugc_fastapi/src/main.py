@@ -1,7 +1,10 @@
-import uvicorn
-from api.v1 import view_progress
 
+
+import uvicorn
 from fastapi import FastAPI
+
+from api.v1 import view_progress
+from brokers import kafka_broker
 
 app = FastAPI(
     title='API для взаимодействия с брокером сообщений',
@@ -13,6 +16,20 @@ app = FastAPI(
 
 
 app.include_router(view_progress.router, prefix='/api/v1')
+
+
+@app.on_event('startup')
+async def startup():
+
+    kafka_producer = kafka_broker.get_kafka_producer()
+    await kafka_producer.start()
+
+    kafka_broker.kafka_broker = kafka_broker.KafkaProducerEngine(producer=kafka_producer)
+
+
+@app.on_event('shutdown')
+async def shutdown():
+    await kafka_broker.kafka_broker.producer.stop()
 
 
 if __name__ == '__main__':
