@@ -1,3 +1,7 @@
+up:
+	make up_kafka
+	make up_click_house
+
 up_kafka:
 	docker compose -f kafka.yml up -d
 up_click_house:
