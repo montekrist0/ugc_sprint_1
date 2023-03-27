@@ -1,4 +1,13 @@
+Ссылка на репозиторий: https://github.com/montekrist0/ugc_sprint_1
+
 # UGC-спринт
+
+## Авторы проекта
+
+1. Artur Kukobin (@arkuk)
+2. Grebennikov Vladimir (@vlgreb)
+3. Bogdanov Igor (@montekrist0) - TL
+
 
 ## 1 Назначение модуля:
 
