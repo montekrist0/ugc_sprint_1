@@ -1,7 +1,5 @@
-
-
-import uvicorn
 from fastapi import FastAPI
+import uvicorn
 
 from api.v1 import view_progress
 from brokers import kafka_broker
