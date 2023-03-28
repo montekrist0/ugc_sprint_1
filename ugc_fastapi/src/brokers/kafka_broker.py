@@ -6,7 +6,7 @@ from aiokafka import AIOKafkaProducer
 from aiokafka.errors import KafkaError
 
 from .base_broker import BaseProducerEngine
-from core.configs import KafkaConfig, kafka_config
+from core.configs import kafka_config, ProducerError
 from datetime import datetime
 import json
 
@@ -20,22 +20,24 @@ class KafkaProducerEngine(BaseProducerEngine):
         self.producer = producer
 
     async def send(self, topic_name: str, film_id: str, user_id: str, value: int):
-
         value = {
-            'user_id': user_id,
-            'film_id': film_id,
-            'viewed_frame': value,
-            'event_time': str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+            "user_id": user_id,
+            "film_id": film_id,
+            "viewed_frame": value,
+            "event_time": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+        }
 
         try:
-            key = f'{film_id}:{user_id}'.encode('utf-8')
+            key = f"{film_id}:{user_id}".encode("utf-8")
             await self.producer.send(
                 topic=topic_name,
-                value=json.dumps(value, ensure_ascii=False).encode('utf-8'),
+                value=json.dumps(value, ensure_ascii=False).encode("utf-8"),
                 key=key,
             )
+
         except KafkaError as ex:
             logger.exception(f"Producer не смог отправить событие. Ошибка: {ex}")
+            raise ProducerError
 
 
 kafka_broker: Optional[KafkaProducerEngine] = None
@@ -46,7 +48,5 @@ async def get_kafka_broker():
 
 
 def get_kafka_producer():
-
     loop = asyncio.get_event_loop()
-    return AIOKafkaProducer(loop=loop,
-                            bootstrap_servers=f'{kafka_config.kafka_host}:{kafka_config.kafka_port}')
+    return AIOKafkaProducer(loop=loop, bootstrap_servers=f"{kafka_config.kafka_host}:{kafka_config.kafka_port}")

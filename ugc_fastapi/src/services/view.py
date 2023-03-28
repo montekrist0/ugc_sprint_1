@@ -17,5 +17,7 @@ class ViewService(BaseService):
 
 
 @lru_cache()
-def get_view_service(producer: KafkaProducerEngine = Depends(get_kafka_broker),) -> ViewService:
+def get_view_service(
+    producer: KafkaProducerEngine = Depends(get_kafka_broker),
+) -> ViewService:
     return ViewService(producer)

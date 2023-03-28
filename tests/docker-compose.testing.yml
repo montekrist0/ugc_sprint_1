@@ -21,12 +21,12 @@ services:
     hostname: kafka
     container_name: kafka
     expose:
-      - 29092
       - 9092
+      - 29092
+#    ports:
+#      - "9092:9092"
     env_file:
       - .env
-    volumes:
-      - kafka_volume:/bitnami
     environment:
       - KAFKA_BROKER_ID=1
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -72,8 +72,8 @@ services:
       - "8123:8123"
       - "9000:9000"
     volumes:
-      - ./clickhouse/data/node1:/etc/clickhouse-server
-      - ./clickhouse/init_db/init_shard1.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../clickhouse/data/node1:/etc/clickhouse-server
+      - ../clickhouse/init_db/init_shard1.sql:/docker-entrypoint-initdb.d/init.sql
     depends_on:
       - click-zookeeper
 
@@ -82,7 +82,7 @@ services:
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
-      - ./clickhouse/data/node2:/etc/clickhouse-server
+      - ../clickhouse/data/node2:/etc/clickhouse-server
     depends_on:
       - click-zookeeper
 
@@ -96,8 +96,8 @@ services:
       - "8124:8123"
       - "9001:9000"
     volumes:
-      - ./clickhouse/data/node3:/etc/clickhouse-server
-      - ./clickhouse/init_db/init_shard2.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../clickhouse/data/node3:/etc/clickhouse-server
+      - ../clickhouse/init_db/init_shard2.sql:/docker-entrypoint-initdb.d/init.sql
     depends_on:
       - click-zookeeper
 
@@ -107,13 +107,13 @@ services:
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:
-      - ./clickhouse/data/node4:/etc/clickhouse-server
+      - ../clickhouse/data/node4:/etc/clickhouse-server
     depends_on:
       - click-zookeeper
 
   fastapi:
     build:
-      context: ./ugc_fastapi
+      context: ../ugc_fastapi
     image: ugcfastapi-image
     env_file:
       - ./.env
@@ -123,21 +123,20 @@ services:
 
     container_name: ugcfastapi_container
     restart: unless-stopped
+    ports:
+      - "8001:8001"
 
-  nginx:
-    image: nginx:1.22.1
-    container_name: nginx_container
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/localhost.crt:/etc/ssl/certs/localhost.crt
-      - ./nginx/localhost.key:/etc/ssl/private/localhost.key
+  tests:
+    image: ugcfastapi-image
     depends_on:
       - fastapi
-    ports:
-      - "443:443"
-      - "80:80"
-    restart: always
-
-volumes:
-  kafka_volume:
+    container_name: tests_container
+    env_file:
+      - ./.env
+    volumes:
+      - ./:/tests
+      - ./functional/.env.docker:/tests/functional/.env
+    entrypoint: >
+      sh -c "pip install -r /tests/requirements.txt
+      && python3 /tests/functional/utils/wait_for_clickhouse.py
+      && python3 -m pytest /tests/functional/src/ -vv"
