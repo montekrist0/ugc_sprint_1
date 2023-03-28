@@ -1,7 +1,8 @@
+from fastapi import FastAPI
 import uvicorn
+
 from api.v1 import view_progress
 
-from fastapi import FastAPI
 
 app = FastAPI(
     title='API для взаимодействия с брокером сообщений',
