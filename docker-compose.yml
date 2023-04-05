@@ -131,12 +131,13 @@ services:
     build:
       context: ./ugc_fastapi
     image: ugcfastapi-image
+    volumes:
+      - ./tmp/logs/app:/home/app/fastapi/log
     env_file:
       - ./.env
     depends_on:
       ugc1_kafka-zookeeper:
         condition: service_healthy
-
     container_name: ugc1_fastapi
     restart: unless-stopped
     networks:
@@ -164,6 +165,7 @@ services:
     image: docker.elastic.co/beats/filebeat:7.17.6
     volumes:
       - ./tmp/logs/nginx:/var/log/nginx:ro
+      - ./tmp/logs/app:/var/log/app:ro
       - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
     depends_on:
       - ugc1_nginx
