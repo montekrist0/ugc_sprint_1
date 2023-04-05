@@ -11,7 +11,12 @@ from datetime import datetime
 import json
 
 logger = logging.getLogger(__name__)
-
+formatter = logging.Formatter(
+    '{"timestamp": "%(asctime)s", "severity": "%(levelname)s", "module": "%(module)s", "message": %(message)s}'
+)
+file_handler = logging.FileHandler('log/logfile.json')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 class KafkaProducerEngine(BaseProducerEngine):
     """Класс брокера сообщений Apache Kafka"""

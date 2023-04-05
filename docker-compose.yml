@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  kafka-zookeeper:
+  ugc1_kafka-zookeeper:
     image: bitnami/zookeeper:3.7.1
     hostname: kafka-zookeeper
     container_name: kafka-zookeeper
@@ -15,8 +15,10 @@ services:
       timeout: 10s
       retries: 10
       start_period: 10s
+    networks:
+      - movies_network
 
-  kafka:
+  ugc1_kafka:
     image: bitnami/kafka:3.3.2
     hostname: kafka
     container_name: kafka
@@ -39,10 +41,12 @@ services:
       - KAFKA_CREATE_TOPICS="view:1:1"
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
     depends_on:
-      kafka-zookeeper:
+      ugc1_kafka-zookeeper:
         condition: service_healthy
+    networks:
+      - movies_network
 
-  init-kafka:
+  ugc1_init-kafka:
     image: bitnami/kafka:3.3.2
     entrypoint: [ '/bin/sh', '-c' ]
     command: |
@@ -55,14 +59,18 @@ services:
       kafka-topics.sh --bootstrap-server kafka:29092 --list
       "
     depends_on:
-      - kafka
+      - ugc1_kafka
+    networks:
+      - movies_network
 
-  click-zookeeper:
+  ugc1_click-zookeeper:
     image: zookeeper:3.5
     container_name: click-zookeeper
     hostname: click-zookeeper
+    networks:
+      - movies_network
 
-  clickhouse-node1:
+  ugc1_clickhouse-node1:
     image: yandex/clickhouse-server:latest
     container_name: clickhouse-node1
     hostname: clickhouse-node1
@@ -75,18 +83,22 @@ services:
       - ./clickhouse/data/node1:/etc/clickhouse-server
       - ./clickhouse/init_db/init_shard1.sql:/docker-entrypoint-initdb.d/init.sql
     depends_on:
-      - click-zookeeper
+      - ugc1_click-zookeeper
+    networks:
+      - movies_network
 
-  clickhouse-node2:
+  ugc1_clickhouse-node2:
     image: yandex/clickhouse-server:latest
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
       - ./clickhouse/data/node2:/etc/clickhouse-server
     depends_on:
-      - click-zookeeper
+      - ugc1_click-zookeeper
+    networks:
+      - movies_network
 
-  clickhouse-node3:
+  ugc1_clickhouse-node3:
     image: yandex/clickhouse-server:latest
     container_name: clickhouse-node3
     hostname: clickhouse-node3
@@ -99,45 +111,70 @@ services:
       - ./clickhouse/data/node3:/etc/clickhouse-server
       - ./clickhouse/init_db/init_shard2.sql:/docker-entrypoint-initdb.d/init.sql
     depends_on:
-      - click-zookeeper
+      - ugc1_click-zookeeper
+    networks:
+      - movies_network
 
 
-  clickhouse-node4:
+  ugc1_clickhouse-node4:
     image: yandex/clickhouse-server:latest
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:
       - ./clickhouse/data/node4:/etc/clickhouse-server
     depends_on:
-      - click-zookeeper
+      - ugc1_click-zookeeper
+    networks:
+      - movies_network
 
-  fastapi:
+  ugc1_fastapi:
     build:
       context: ./ugc_fastapi
     image: ugcfastapi-image
+    volumes:
+      - ./tmp/logs/app:/home/app/fastapi/log
     env_file:
       - ./.env
     depends_on:
-      kafka-zookeeper:
+      ugc1_kafka-zookeeper:
         condition: service_healthy
-
-    container_name: ugcfastapi_container
+    container_name: ugc1_fastapi
     restart: unless-stopped
+    networks:
+      - movies_network
 
-  nginx:
+  ugc1_nginx:
     image: nginx:1.22.1
-    container_name: nginx_container
+    container_name: ugc1_nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
       - ./nginx/localhost.crt:/etc/ssl/certs/localhost.crt
       - ./nginx/localhost.key:/etc/ssl/private/localhost.key
+      - ./tmp/logs/nginx/:/var/log/nginx/
     depends_on:
-      - fastapi
+      - ugc1_fastapi
     ports:
-      - "443:443"
-      - "80:80"
+      - "444:443"
+      - "82:80"
     restart: always
+    networks:
+      - movies_network
+
+  ugc1_filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.6
+    volumes:
+      - ./tmp/logs/nginx:/var/log/nginx:ro
+      - ./tmp/logs/app:/var/log/app:ro
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      - ugc1_nginx
+    networks:
+      - movies_network
 
 volumes:
   kafka_volume:
+
+networks:
+  movies_network:
+    external: true
